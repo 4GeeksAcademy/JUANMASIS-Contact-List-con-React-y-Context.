@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { Context } from "../hooks/useGlobalReducer";
 import { useNavigate } from "react-router-dom";
+import { API_URL, AGENDA_SLUG, actions } from "../store";
 
 const ContactCard = ({ contact }) => {
 	const { dispatch } = useContext(Context);
@@ -8,8 +9,16 @@ const ContactCard = ({ contact }) => {
 
 	const handleDelete = async () => {
 		const confirmDelete = window.confirm("Are you sure you want to delete this contact?");
-		if (confirmDelete) {
-			await dispatch.actions.deleteContact(contact.id);
+		if (!confirmDelete) return;
+
+		try {
+			await fetch(`${API_URL}/agendas/${AGENDA_SLUG}/contacts/${contact.id}`, {
+				method: "DELETE"
+			});
+
+			dispatch(actions.deleteContact(contact.id));
+		} catch (error) {
+			console.log("Error deleting contact:", error);
 		}
 	};
 

@@ -1,17 +1,10 @@
 import React, { createContext, useContext, useReducer } from "react";
-import storeReducer, { initialStore, actions } from "../store";
+import storeReducer, { initialStore } from "../store";
 
 export const Context = createContext(null);
 
 export function StoreProvider({ children }) {
-	const [store, baseDispatch] = useReducer(storeReducer, initialStore());
-
-	const dispatch = {
-		dispatch: baseDispatch,
-		actions: {}
-	};
-
-	dispatch.actions = actions(dispatch);
+	const [store, dispatch] = useReducer(storeReducer, initialStore());
 
 	return (
 		<Context.Provider value={{ store, dispatch }}>

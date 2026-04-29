@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Context } from "../hooks/useGlobalReducer";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { API_URL, AGENDA_SLUG, actions } from "../store";
 
 const AddContact = () => {
 	const { store, dispatch } = useContext(Context);
@@ -41,13 +42,35 @@ const AddContact = () => {
 	const handleSubmit = async e => {
 		e.preventDefault();
 
-		if (id) {
-			await dispatch.actions.updateContact(id, formData);
-		} else {
-			await dispatch.actions.addContact(formData);
-		}
+		try {
+			if (id) {
+				const response = await fetch(`${API_URL}/agendas/${AGENDA_SLUG}/contacts/${id}`, {
+					method: "PUT",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify(formData)
+				});
 
-		navigate("/");
+				const updatedContact = await response.json();
+				dispatch(actions.updateContact(updatedContact));
+			} else {
+				const response = await fetch(`${API_URL}/agendas/${AGENDA_SLUG}/contacts`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify(formData)
+				});
+
+				const newContact = await response.json();
+				dispatch(actions.addContact(newContact));
+			}
+
+			navigate("/");
+		} catch (error) {
+			console.log("Error saving contact:", error);
+		}
 	};
 
 	return (

@@ -1,5 +1,7 @@
 const API_URL = "https://playground.4geeks.com/contact";
-const AGENDA_SLUG = "juanmasis777";
+export { API_URL };
+
+export const AGENDA_SLUG = "juanmasis777";
 
 export const initialStore = () => {
 	return {
@@ -9,98 +11,55 @@ export const initialStore = () => {
 
 export default function storeReducer(store, action = {}) {
 	switch (action.type) {
-		case "get_contacts":
+		case "set_contacts":
 			return {
 				...store,
 				contacts: action.payload
 			};
 
+		case "add_contact":
+			return {
+				...store,
+				contacts: [...store.contacts, action.payload]
+			};
+
+		case "delete_contact":
+			return {
+				...store,
+				contacts: store.contacts.filter(contact => contact.id !== action.payload)
+			};
+
+		case "update_contact":
+			return {
+				...store,
+				contacts: store.contacts.map(contact =>
+					contact.id === action.payload.id ? action.payload : contact
+				)
+			};
+
 		default:
-			throw Error("Unknown action.");
+			return store;
 	}
 }
 
-export const actions = dispatch => ({
-	createAgenda: async () => {
-		try {
-			await fetch(`${API_URL}/agendas/${AGENDA_SLUG}`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json"
-				}
-			});
-		} catch (error) {
-			console.log("Error creating agenda:", error);
-		}
-	},
+export const actions = {
+	setContacts: contacts => ({
+		type: "set_contacts",
+		payload: contacts
+	}),
 
-	getContacts: async () => {
-		try {
-			const response = await fetch(`${API_URL}/agendas/${AGENDA_SLUG}/contacts`);
+	addContact: contact => ({
+		type: "add_contact",
+		payload: contact
+	}),
 
-			if (response.status === 404) {
-				await dispatch.actions.createAgenda();
-				return dispatch.actions.getContacts();
-			}
+	deleteContact: id => ({
+		type: "delete_contact",
+		payload: id
+	}),
 
-			const data = await response.json();
-			dispatch.dispatch({ type: "get_contacts", payload: data.contacts || [] });
-		} catch (error) {
-			console.log("Error loading contacts:", error);
-		}
-	},
-
-	addContact: async formData => {
-		try {
-			await fetch(`${API_URL}/agendas/${AGENDA_SLUG}/contacts`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json"
-				},
-				body: JSON.stringify({
-					name: formData.name,
-					phone: formData.phone,
-					email: formData.email,
-					address: formData.address
-				})
-			});
-
-			await dispatch.actions.getContacts();
-		} catch (error) {
-			console.log("Error adding contact:", error);
-		}
-	},
-
-	deleteContact: async id => {
-		try {
-			await fetch(`${API_URL}/agendas/${AGENDA_SLUG}/contacts/${id}`, {
-				method: "DELETE"
-			});
-
-			await dispatch.actions.getContacts();
-		} catch (error) {
-			console.log("Error deleting contact:", error);
-		}
-	},
-
-	updateContact: async (id, formData) => {
-		try {
-			await fetch(`${API_URL}/agendas/${AGENDA_SLUG}/contacts/${id}`, {
-				method: "PUT",
-				headers: {
-					"Content-Type": "application/json"
-				},
-				body: JSON.stringify({
-					name: formData.name,
-					phone: formData.phone,
-					email: formData.email,
-					address: formData.address
-				})
-			});
-
-			await dispatch.actions.getContacts();
-		} catch (error) {
-			console.log("Error updating contact:", error);
-		}
-	}
-});
+	updateContact: contact => ({
+		type: "update_contact",
+		payload: contact
+	})
+};

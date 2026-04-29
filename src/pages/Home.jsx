@@ -2,12 +2,35 @@ import React, { useContext, useEffect } from "react";
 import { Context } from "../hooks/useGlobalReducer";
 import { Link } from "react-router-dom";
 import ContactCard from "../components/ContactCard";
+import { API_URL, AGENDA_SLUG, actions } from "../store";
 
 export const Home = () => {
 	const { store, dispatch } = useContext(Context);
 
+	const loadContacts = async () => {
+		try {
+			const response = await fetch(`${API_URL}/agendas/${AGENDA_SLUG}/contacts`);
+
+			if (response.status === 404) {
+				await fetch(`${API_URL}/agendas/${AGENDA_SLUG}`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					}
+				});
+
+				return loadContacts();
+			}
+
+			const data = await response.json();
+			dispatch(actions.setContacts(data.contacts || []));
+		} catch (error) {
+			console.log("Error loading contacts:", error);
+		}
+	};
+
 	useEffect(() => {
-		dispatch.actions.getContacts();
+		loadContacts();
 	}, []);
 
 	return (
